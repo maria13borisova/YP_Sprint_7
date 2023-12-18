@@ -1,25 +1,25 @@
-import POJO.Order;
-import io.qameta.allure.Step;
+import io.qameta.allure.Description;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import ru.api.client.OrdersClient;
+import ru.constants.Api;
+import ru.pojo.Order;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.any;
-import static org.hamcrest.Matchers.greaterThan;
 
 
 @RunWith(Parameterized.class)
 public class CreateOrderTest {
 
     private List<String> listOfColors;
+    OrdersClient ordersClient = new OrdersClient();
 
     public CreateOrderTest(List<String> listOfColors) {
         if(listOfColors != null) {
@@ -45,35 +45,16 @@ public class CreateOrderTest {
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
+        RestAssured.baseURI = Api.BASE_URL;
     }
 
     @Test
+    @DisplayName("Create order")
+    @Description("Создание заказа с указанием параметров")
     public void createOrderIsSuccess() {
         Order order = new Order(listOfColors);
-        Response response = createOrderResponse(order);
-        checkOrderIsCreated(response);
+        Response response = ordersClient.createOrderResponse(order);
+        ordersClient.checkOrderIsCreated(response);
     }
 
-    /* Шаги для тест-кейсов */
-    @Step("Create order")
-    public Response createOrderResponse(Order order){
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(order)
-                        .when()
-                        .post("/api/v1/orders");
-        return response;
-    }
-
-    @Step("Check order is created")
-    public void checkOrderIsCreated(Response response){
-        response.then().statusCode(201)
-                .and()
-                .body("track", any(Integer.class))
-                .and()
-                .body("track", greaterThan(0));
-    }
 }
